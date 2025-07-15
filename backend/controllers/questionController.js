@@ -51,29 +51,12 @@ import pool from '../db.js';
 
 export const createQuestion = async (req, res) => {
     try {
-        const { sectionId, subSectionId, question, optionType } = req.body;
-        console.log('req.body:', req.body);
-        console.log('req.files:', req.files);
-        let options = [];
-        let i = 0;
-        while (req.body[`options[${i}][text]`]) {
-            options.push({
-                text: req.body[`options[${i}][text]`],
-                marks: req.body[`options[${i}][marks]`],
-                image: null,
-            });
-            i++;
-        }
-        // match uploaded files:
-        req.files.forEach(file => {
-            const match = file.fieldname.match(/options\[(\d+)\]\[image\]/);
-            if (match) {
-                const idx = parseInt(match[1], 10);
-                if (options[idx]) {
-                    options[idx].image = file.filename;
-                }
-            }
-        });
+        const { sectionId, subSectionId, question, optionType, options } = req.body;
+
+        console.log(' req.body.options:', options);
+        console.log(' req.files:', req.files);
+
+        // Validate required fields
         if (
             !sectionId ||
             !subSectionId ||
@@ -85,31 +68,65 @@ export const createQuestion = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
-        // ✅ DB
-        const client = await pool.connect();
-        await client.query('BEGIN');
-        const maxId = (await getMaxQuestionId()) + 1;
-        await client.query(
-            `INSERT INTO questions (id, section_id, subsection_id, question_text, option_type)
-            VALUES ($1, $2, $3, $4, $5)`,
-            [maxId, sectionId, subSectionId, question, optionType]
-        );
-        for (const option of options) {
-            await client.query(`INSERT INTO options (question_id, text, marks, image)
-            VALUES ($1, $2, $3, $4)`,
-                [maxId, option.text, option.marks, option.image]);
-        }
-        await client.query('COMMIT');
-        res.status(201).json({
-            success: true,
-            message: 'Question created successfully',
-            question_id: maxId,
+        // Ensure options are properly shaped
+        const preparedOptions = options.map(opt => ({
+            text: opt.text,
+            marks: opt.marks,
+            image: null,
+        }));
+        console.log(preparedOptions)
+        console.log(req.files)
+        req.files.forEach(file => {
+            const match = file.fieldname.match(/options\[(\d+)\]\[image\]/);
+            console.log(match)
+            if (match) {
+                const idx = parseInt(match[1], 10);
+                if (preparedOptions[idx]) {
+                    preparedOptions[idx].image = file.filename;
+                }
+            }
         });
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const maxId = (await getMaxQuestionId()) + 1;
+
+            await client.query(
+                `INSERT INTO questions (id, section_id, subsection_id, question_text, option_type)
+         VALUES ($1, $2, $3, $4, $5)`,
+                [maxId, sectionId, subSectionId, question, optionType]
+            );
+
+            for (const option of preparedOptions) {
+                await client.query(
+                    `INSERT INTO options (question_id, text, marks, image_path)
+           VALUES ($1, $2, $3, $4)`,
+                    [maxId, option.text, option.marks, option.image]
+                );
+            }
+
+            await client.query('COMMIT');
+
+            res.status(201).json({
+                success: true,
+                message: 'Question created successfully',
+                question_id: maxId,
+            });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            console.error('❌ DB transaction failed:', err);
+            res.status(500).json({ success: false, message: 'Internal Server Error' });
+        } finally {
+            client.release();
+        }
+
     } catch (err) {
-        console.error('Error creating question:', err);
+        console.error('❌ createQuestion failed:', err);
         res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 };
+
 
 
 const getMaxQuestionId = async () => {
