@@ -2,7 +2,7 @@
 
 import express from 'express';
 import multer from 'multer';
-import { createQuestion, getLastFiveQuestions } from '../controllers/questionController.js';
+import { createQuestion, getLastFiveQuestions, getQuestionById } from '../controllers/questionController.js';
 
 const router = express.Router();
 const storage = multer.diskStorage({
@@ -18,5 +18,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 router.post('/', upload.any(), createQuestion);
 router.get('/', getLastFiveQuestions);
+router.get('/:questionId', getQuestionById);
 
 export default router;

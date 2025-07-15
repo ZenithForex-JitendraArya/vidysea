@@ -130,6 +130,7 @@ export default function QuestionForm() {
                 setQuestion('');
                 setOptionType('SINGLE');
                 setOptions([{ text: '', marks: '', image: null }]);
+                router.push('/')
             }
         } catch (err) {
             console.error(err);

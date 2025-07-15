@@ -163,3 +163,37 @@ export const getLastFiveQuestions = async (req, res) => {
         });
     }
 };
+
+export const getQuestionById = async (req, res) => {
+    const { questionId } = req.params;
+    console.log('Question ID:', questionId);
+
+    // Example DB logic
+    const client = await pool.connect();
+    const questionQuery = `
+      SELECT 
+        q.id, 
+        q.question_text, 
+        q.option_type, 
+        s.name as section_name,
+        ss.name as subsection_name
+      FROM questions q
+      JOIN sections s ON q.section_id = s.id
+      JOIN subsections ss ON q.subsection_id = ss.id
+      WHERE q.id = $1
+    `;
+    const questionResult = await client.query(questionQuery, [questionId]);
+    if (questionResult.rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Question not found' });
+    }
+    const optionsResult = await client.query('SELECT * FROM options WHERE question_id = $1', [questionId]);
+
+    res.json({
+        success: true,
+        data: {
+            ...questionResult.rows[0],
+            options: optionsResult.rows
+        }
+    });
+};
+

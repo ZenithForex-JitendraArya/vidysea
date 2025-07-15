@@ -27,7 +27,7 @@ pool.connect().then(() => console.log("🟢 PostgreSQL connected"))
 app.use("/api/section", sectionRouter)
 app.use('/api/subsection', subsectionsRoutes);
 app.use('/api/question', questionsRoutes);
-
+app.use('/uploads', express.static('uploads'));
 // Start server
 app.listen(port, () => {
     console.log(`🚀 Server running on http://localhost:${port}`);
