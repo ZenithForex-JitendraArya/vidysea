@@ -1,13 +1,14 @@
 // app/[id]/page.tsx
 
 import React from 'react';
+import { apiUrl } from '../../../lib/config';
 
 interface Params {
     params: { id: string };
 }
 
 async function getQuestion(id: string) {
-    const res = await fetch(`http://localhost:5000/api/question/${id}`, {
+    const res = await fetch(apiUrl+`/question/${id}`, {
         cache: 'no-store',
     });
     return res.json();
@@ -16,7 +17,7 @@ async function getQuestion(id: string) {
 export default async function QuestionPage({ params }: Params) {
     const { id } = params;
     const result = await getQuestion(id);
-console.log(result)
+    console.log(result)
     if (!result.success) {
         return (
             <div className="container py-5">

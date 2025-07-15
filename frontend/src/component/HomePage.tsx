@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
+import { apiUrl } from '../../lib/config';
 
+console.log(apiUrl);
 interface Question {
     id: number;
     question_text: string;
@@ -18,7 +20,7 @@ export default function HomePage() {
 
     const fetchQuestions = async () => {
         try {
-            const res = await fetch('http://localhost:5000/api/question');
+            const res = await fetch(apiUrl+'/question');
             const result = await res.json();
             if (result.success) {
                 setQuestions(result.data);

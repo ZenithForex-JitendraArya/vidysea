@@ -1,7 +1,11 @@
 'use client';
 
+
+// import { API_BASE_URL } from '../../lib/config';
+
 import React, { useState, useEffect, ReactEventHandler } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl } from '../../lib/config';
 
 
 interface Section {
@@ -37,7 +41,7 @@ export default function QuestionForm() {
 
     const getSectionList = async () => {
         try {
-            const res = await fetch('http://localhost:5000/api/section', {
+            const res = await fetch(apiUrl+'/section', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -62,7 +66,7 @@ export default function QuestionForm() {
         setSelectedSection(sectionId);
         setSelectedSubSection(null);
         try {
-            const res = await fetch(`http://localhost:5000/api/subsection/${sectionId}`, {
+            const res = await fetch(apiUrl+`/subsection/${sectionId}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -115,7 +119,7 @@ export default function QuestionForm() {
             }
         });
         try {
-            const res = await fetch('http://localhost:5000/api/question', {
+            const res = await fetch(apiUrl+'/question', {
                 method: 'POST',
                 body: formData,
             });
