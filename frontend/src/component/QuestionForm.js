@@ -1,38 +1,17 @@
 'use client';
 
-
-// import { API_BASE_URL } from '../../lib/config';
-
-import React, { useState, useEffect, ReactEventHandler } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiUrl } from '../../lib/config';
 
-
-interface Section {
-    id: number;
-    name: string;
-}
-
-interface SubSection {
-    id: number;
-    name: string;
-    sectionId: number;
-}
-
-interface Option {
-    text: string;
-    marks: string;
-    image: File | null;
-}
-
 export default function QuestionForm() {
-    const [sectionsList, setSectionsList] = useState<Section[]>([]);
-    const [subSectionsList, setSubSectionsList] = useState<SubSection[]>([]);
-    const [selectedSection, setSelectedSection] = useState<number | null>(null);
-    const [selectedSubSection, setSelectedSubSection] = useState<number | null>(null);
+    const [sectionsList, setSectionsList] = useState([]);
+    const [subSectionsList, setSubSectionsList] = useState([]);
+    const [selectedSection, setSelectedSection] = useState(null);
+    const [selectedSubSection, setSelectedSubSection] = useState(null);
     const [question, setQuestion] = useState('');
-    const [optionType, setOptionType] = useState<'SINGLE' | 'MULTI'>('SINGLE');
-    const [options, setOptions] = useState<Option[]>([{ text: '', marks: '', image: null }]);
+    const [optionType, setOptionType] = useState('SINGLE');
+    const [options, setOptions] = useState([{ text: '', marks: '', image: null }]);
     const router = useRouter();
 
     useEffect(() => {
@@ -41,7 +20,7 @@ export default function QuestionForm() {
 
     const getSectionList = async () => {
         try {
-            const res = await fetch(apiUrl+'/section', {
+            const res = await fetch(apiUrl + '/section', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -62,11 +41,11 @@ export default function QuestionForm() {
         }
     };
 
-    const sectionHandler = async (sectionId: number) => {
+    const sectionHandler = async (sectionId) => {
         setSelectedSection(sectionId);
         setSelectedSubSection(null);
         try {
-            const res = await fetch(apiUrl+`/subsection/${sectionId}`, {
+            const res = await fetch(apiUrl + `/subsection/${sectionId}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -89,21 +68,18 @@ export default function QuestionForm() {
         setOptions([...options, { text: '', marks: '', image: null }]);
     };
 
-    const handleOptionChange = (index: number, field: keyof Omit<Option, 'image'>, value: string) => {
+    const handleOptionChange = (index, field, value) => {
         const updated = [...options];
         updated[index][field] = value;
         setOptions(updated);
     };
 
-
-    const handleOptionImageChange = (index: number, file: File | null) => {
+    const handleOptionImageChange = (index, file) => {
         console.log('Selected file for option', index, ':', file);
         const updated = [...options];
-        console.log(file);
         updated[index].image = file;
         setOptions(updated);
     };
-
 
     const handleSubmit = async () => {
         const formData = new FormData();
@@ -119,30 +95,26 @@ export default function QuestionForm() {
             }
         });
         try {
-            const res = await fetch(apiUrl+'/question', {
+            const res = await fetch(apiUrl + '/question', {
                 method: 'POST',
                 body: formData,
             });
-            const resp = await res.json();  // ✅ FIXED
+            const resp = await res.json();
             console.log(resp);
             if (!resp.success) {
                 throw new Error('Something went wrong!');
             } else {
                 alert('Question submitted successfully!');
-                // setSelectedSection('');         // ✅ FIXED
-                // setSelectedSubSection('');      // ✅ FIXED
                 setQuestion('');
                 setOptionType('SINGLE');
                 setOptions([{ text: '', marks: '', image: null }]);
-                router.push('/')
+                router.push('/');
             }
         } catch (err) {
             console.error(err);
             alert('Error submitting question');
         }
     };
-
-
 
     return (
         <>
@@ -194,7 +166,7 @@ export default function QuestionForm() {
                     <select
                         className="form-select"
                         value={optionType}
-                        onChange={(e) => setOptionType(e.target.value as 'SINGLE' | 'MULTI')}
+                        onChange={(e) => setOptionType(e.target.value)}
                     >
                         <option value="SINGLE">Single</option>
                         <option value="MULTI">Multi</option>
@@ -207,7 +179,6 @@ export default function QuestionForm() {
                             <th>Option</th>
                             <th>Marks</th>
                             <th>Image</th>
-
                         </tr>
                     </thead>
                     <tbody>

@@ -2,26 +2,21 @@ import { Metadata } from 'next';
 import React from 'react';
 import { apiUrl } from '../../lib/config';
 
-// ✅ Call it anything: e.g. Props
-interface Props {
-    params: { id: string };
-}
-
 // ✅ (Optional) add generateMetadata if you want SEO later
-export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
+export const generateMetadata = async ({ params }) => {
     return {
         title: `Question ${params.id}`,
     };
 };
 
-async function getQuestion(id: string) {
+async function getQuestion(id) {
     const res = await fetch(`${apiUrl}/question/${id}`, {
         cache: 'no-store',
     });
     return res.json();
 }
 
-export default async function Page({ params }: Props) {
+export default async function Page({ params }) {
     const { id } = params;
     const result = await getQuestion(id);
 
@@ -71,7 +66,7 @@ export default async function Page({ params }: Props) {
                         </tr>
                     </thead>
                     <tbody>
-                        {question.options.map((opt: any, idx: number) => (
+                        {question.options.map((opt, idx) => (
                             <tr key={idx}>
                                 <td>{opt.text}</td>
                                 <td>{opt.marks}</td>
