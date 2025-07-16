@@ -1,27 +1,34 @@
-// app/[id]/page.tsx
-
+import { Metadata } from 'next';
 import React from 'react';
-import { apiUrl } from '../../../lib/config';
+import { apiUrl } from '../../lib/config';
 
-interface Params {
+// ✅ Call it anything: e.g. Props
+interface Props {
     params: { id: string };
 }
 
+// ✅ (Optional) add generateMetadata if you want SEO later
+export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
+    return {
+        title: `Question ${params.id}`,
+    };
+};
+
 async function getQuestion(id: string) {
-    const res = await fetch(apiUrl + `/question/${id}`, {
+    const res = await fetch(`${apiUrl}/question/${id}`, {
         cache: 'no-store',
     });
     return res.json();
 }
 
-export default async function QuestionPage({ params }: Params) {
+export default async function Page({ params }: Props) {
     const { id } = params;
     const result = await getQuestion(id);
-    console.log(result)
+
     if (!result.success) {
         return (
             <div className="container py-5">
-                <h1 className="text-danger text-center"> Question Not Found</h1>
+                <h1 className="text-danger text-center">Question Not Found</h1>
             </div>
         );
     }
@@ -33,33 +40,24 @@ export default async function QuestionPage({ params }: Params) {
             <h1 className="text-center mb-4">View Question</h1>
             <div className="mb-4">
                 <h4 className="mb-2">Question ID</h4>
-                <div className="p-3 border rounded bg-light">
-                    #{question.id}
-                </div>
+                <div className="p-3 border rounded bg-light">#{question.id}</div>
             </div>
+
             <div className="mb-4">
                 <h4 className="mb-2">Section</h4>
-                <div className="p-3 border rounded bg-light">
-                    {question.section_name}
-                </div>
-                <h4 className="mb-2">Sub Section </h4>
-                <div className="p-3 border rounded bg-light">
-                    {question.subsection_name}
-                </div>
+                <div className="p-3 border rounded bg-light">{question.section_name}</div>
+                <h4 className="mb-2">Sub Section</h4>
+                <div className="p-3 border rounded bg-light">{question.subsection_name}</div>
             </div>
 
             <div className="mb-4">
                 <h4 className="mb-2">Question</h4>
-                <div className="p-3 border rounded bg-light">
-                    {question.question_text}
-                </div>
+                <div className="p-3 border rounded bg-light">{question.question_text}</div>
             </div>
 
             <div className="mb-4">
                 <h4 className="mb-2">Option Type</h4>
-                <div className="p-3 border rounded bg-light">
-                    {question.option_type}
-                </div>
+                <div className="p-3 border rounded bg-light">{question.option_type}</div>
             </div>
 
             <div>
@@ -80,7 +78,7 @@ export default async function QuestionPage({ params }: Params) {
                                 <td>
                                     {opt.image_path ? (
                                         <img
-                                            src={`http://localhost:5000/uploads/${opt.image_path}`}
+                                            src={`${apiUrl.replace('/api', '')}/uploads/${opt.image_path}`}
                                             alt={`Option ${idx + 1}`}
                                             style={{ maxWidth: '120px', maxHeight: '80px' }}
                                         />
